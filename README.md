@@ -2,7 +2,7 @@
 ## Conda
 Install the 3d_vision toolbox with
 ```
-conda develop $HOME/3d_vision/tools
+conda develop $HOME/3d_vision/vision_3d_utils
 ```
 
 # projection.py
