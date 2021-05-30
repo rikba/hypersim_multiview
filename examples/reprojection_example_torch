@@ -9,9 +9,33 @@ import torch
 import os
 import time
 
+def maskImage(img, px, inliers, reprojection):
+    blue = np.array([255, 0, 0], dtype=np.uint8)
+    red = np.array([0, 0, 255], dtype=np.uint8)
+
+    # Double check if in FOV.
+    outliers = ~inliers
+
+    inliers = reprojection.maskFov(inliers, px)
+    outliers = reprojection.maskFov(outliers, px)
+
+    px_inlier = px[inliers][:,0],px[inliers][:,1]
+    px_outlier = px[outliers][:,0],px[outliers][:,1]
+    # Print all inliers.
+    img[px_inlier]=0
+    img[px_outlier]=0
+    img[px_inlier]+=blue
+    img[px_outlier]+=red
+    return img
+
+def indices_array_generic_builtin(m,n):
+    return torch.from_numpy(np.indices((m,n)).transpose(1,2,0))
+
 # Initialize utilities once.
 verbose = False
 all_pixels = True
+slicing = False
+visualize = False
 # Assume hypersim data sits in $SCRATCH/hypersim
 #hypersim_path = os.environ.get('SCRATCH')
 #hypersim_path = os.path.join(hypersim_path, 'hypersim')
@@ -24,21 +48,26 @@ vol=1
 scene=1
 cam=0
 source_frame=0
-target_frame=1
+target_frame=0
+
 source_position_map = data.loadPositionMap(vol, scene, cam, source_frame)
 target_position_map = data.loadPositionMap(vol, scene, cam, target_frame)
 source_reflectance_map = data.loadReflectance(vol, scene, cam, source_frame)
 R_CW, t_CW = data.loadCamPose(vol, scene, cam, target_frame)
 
 # Warp test pixels.
-# First column: width, second column height.
-px_source = torch.tensor([[100, 200, 300, 400, 500, 600, 700, 800, 900],
-                          [600, 600, 600, 600, 600, 600, 600, 600, 600]])
+# First pixel entry height, second pixel entry width.
+px_source = torch.tensor([
+                      [[100, 600], [200, 600], [300, 600], [400, 600], [500, 600]],
+                      [[100, 700], [200, 700], [300, 700], [400, 700], [500, 700]],
+                      [[100, 800], [200, 800], [300, 800], [400, 800], [500, 800]]
+                      ])
+
 if all_pixels:
-    import itertools
-    W = [*range(0, 1024, 4)]
-    H = [*range(0, 768, 4)]
-    px_source=torch.tensor(list(itertools.product(W, H))).T
+    px_source = indices_array_generic_builtin(767,1023)
+    if slicing:
+        px_source = np.delete(px_source, slice(None, None, 2), 0)
+        px_source = np.delete(px_source, slice(None, None, 2), 1)
 
 start_time = time.time()
 px_source, px_target, inliers = reprojection.warp(px_source,
@@ -50,24 +79,14 @@ px_source, px_target, inliers = reprojection.warp(px_source,
 print('Warping operation: {:.3f} seconds'.format(time.time() - start_time))
 
 # Visualize
-img_source = data.loadBgr(vol, scene, cam, source_frame)
-img_target = data.loadBgr(vol, scene, cam, target_frame)
-cv2.imshow('image_source', img_source)
-cv2.imshow('image_target', img_target)
+if visualize:
+    img_source = data.loadBgr(vol, scene, cam, source_frame)
+    img_target = data.loadBgr(vol, scene, cam, target_frame)
 
-# Draw pixels.
-blue = (255, 0, 0)
-red = (0, 0, 255)
-size = 2
-for px_s, px_t, inlier in zip(px_source.T, px_target.T, inliers):
-    if inlier:
-        cv2.circle(img_source, tuple(px_s), size, blue)
-        cv2.circle(img_target, tuple(px_t), size, blue)
-    else:
-        cv2.circle(img_source, tuple(px_s), size, red)
-        cv2.circle(img_target, tuple(px_t), size, red)
+    img_source = maskImage(img_source, px_source, inliers, reprojection)
+    img_target = maskImage(img_target, px_target, inliers, reprojection)
 
-cv2.imshow('image_source', img_source)
-cv2.imshow('image_target', img_target)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    cv2.imshow('img_source', img_source)
+    cv2.imshow('image_target', img_target)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

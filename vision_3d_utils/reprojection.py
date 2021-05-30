@@ -30,8 +30,15 @@ class Reprojection:
         C_T_CW = np.block([[R_CW, np.asmatrix(C_t_CW).T], [np.zeros((1,3)), np.ones((1,1))]])
         return self.K.dot(C_T_CW)
 
+    def maskFov(self, inliers, px):
+        inliers = torch.logical_and(inliers, px[:,:,0].ge(0))
+        inliers = torch.logical_and(inliers, px[:,:,1].ge(0))
+        inliers = torch.logical_and(inliers, px[:,:,0].lt(self.H))
+        inliers = torch.logical_and(inliers, px[:,:,1].lt(self.W))
+        return inliers
+
     # Warp source pixels to target pixels using torch.
-    # Input: source pixel tensor, first column: width, second column height.
+    # Input: First pixel entry height, second pixel entry width.
     #        map from pixels to world positions of source frame
     #        rotation of target frame camera
     #        translation of target frame camera
@@ -41,65 +48,57 @@ class Reprojection:
     #        (optional) map from pixels to reflectance values of source frame to mask reflectant pixel
     #        (optional) reflectance threshold
     # Output: All source pixels, all projected target pixels, list of inliers.
-    # Example:
-    # px_src, px_trg, inliers = warp(...)
-    # px_src_inliers = px_src[:,inliers]
-    # px_trg_inliers = px_trg[:,inliers]
     def warp(self, px_source, source_position_map, R_CW, C_t_CW, mask_fov=False, mask_occlusion=None, occlusion_threshold=0.03, mask_reflectance=None, reflectance_threshold=30):
         # Convert input to torch.
-        source_position_map = torch.from_numpy(source_position_map)
+        source_position_map = torch.from_numpy(source_position_map).float()
         K = torch.from_numpy(self.K).float()
-        N = px_source.size(1)
 
         # Construct projection matrix.
         C_T_CW = torch.eye(4)
-        C_T_CW[0:3, 0:3] = torch.from_numpy(R_CW)
-        C_T_CW[0:3, 3] = torch.from_numpy(C_t_CW)
+        C_T_CW[0:3, 0:3] = torch.from_numpy(R_CW).float()
+        C_T_CW[0:3, 3] = torch.from_numpy(C_t_CW).float()
         P = torch.matmul(K, C_T_CW)
 
         # Get homogeneous world position of pixels.
-        W_t_WP = source_position_map[px_source[1,:], px_source[0,:]].T
-        W_t_WP = torch.cat((W_t_WP, torch.ones(1, N)), 0)
+        W_t_WP = source_position_map[px_source[:,:,0], px_source[:,:,1]]
+        H, W, C = px_source.shape
+        W_t_WP = torch.cat((W_t_WP, torch.ones(H,W,1)), 2)
 
         # Project pixels into screen coordinates.
-        p_screen = torch.matmul(P, W_t_WP)
+        p_screen = torch.matmul(W_t_WP, P.T)
 
         # Normalize.
-        p_screen = p_screen / p_screen[3,:]
+        p_screen = torch.div(p_screen, p_screen[:,:,3].view(H,W,1))
 
         # Compute pixel coordinates from relative points around camera center.
-        px_target = torch.zeros(2, N)
-        px_target[0,:] = 0.5 * (p_screen[0,:] + 1) * (self.W - 1)
-        px_target[1,:] = (1 - 0.5 * (p_screen[1,:] + 1)) * (self.H - 1)
+        px_target = torch.zeros(H,W,C)
+        px_target[:,:,1] = 0.5 * (p_screen[:,:,0] + 1) * (self.W - 1)
+        px_target[:,:,0] = (1 - 0.5 * (p_screen[:,:,1] + 1)) * (self.H - 1)
 
         # Round to integer
         px_target = px_target.round().long()
 
         # Masking
         # WARNING: The order of the checks matters!
-        inlier_mask = torch.arange(0, N)
+        inlier_mask = torch.ones(H,W, dtype=bool)
 
         # Mask pixel that are outside of field of view.
         if mask_fov or mask_occlusion is not None:
-            inlier_mask = torch.logical_and(inlier_mask, px_target[0,:]>=0)
-            inlier_mask = torch.logical_and(inlier_mask, px_target[1,:]>=0)
-            inlier_mask = torch.logical_and(inlier_mask, px_target[0,:]<self.W)
-            inlier_mask = torch.logical_and(inlier_mask, px_target[1,:]<self.H)
-
+            inlier_mask = self.maskFov(inlier_mask, px_target)
 
         # Mask pixel that are occluded.
         if mask_occlusion is not None:
             # Get world position of target pixels that are in FOV.
-            target_position_map = torch.from_numpy(mask_occlusion)
-            W_t_WP_source = source_position_map[px_source[1,inlier_mask], px_source[0,inlier_mask]]
-            W_t_WP_target = target_position_map[px_target[1,inlier_mask], px_target[0,inlier_mask]]
-            inlier_mask[inlier_mask==True] = torch.logical_and(inlier_mask[inlier_mask==True], torch.norm(W_t_WP_target - W_t_WP_source, dim=1) < occlusion_threshold)
+            target_position_map = torch.from_numpy(mask_occlusion).float()
+            W_t_WP_source = source_position_map[px_source[inlier_mask][:,0],px_source[inlier_mask][:,1]]
+            W_t_WP_target = target_position_map[px_target[inlier_mask][:,0],px_target[inlier_mask][:,1]]
+            inlier_mask[inlier_mask==True] = torch.logical_and(inlier_mask[inlier_mask==True], torch.norm(W_t_WP_target - W_t_WP_source, dim=1).lt(occlusion_threshold))
 
         # Mask pixel that are reflectant.
         if mask_reflectance is not None:
-            source_reflectance_map = torch.from_numpy(mask_reflectance)
-            reflectance = source_reflectance_map[px_source[1,inlier_mask], px_source[0,inlier_mask]]
-            inlier_mask[inlier_mask==True] = torch.logical_and(inlier_mask[inlier_mask==True], torch.any(reflectance >= reflectance_threshold, dim=1))
+            source_reflectance_map = torch.from_numpy(mask_reflectance).float()
+            reflectance = source_reflectance_map[px_source[inlier_mask][:,0],px_source[inlier_mask][:,1]]
+            inlier_mask[inlier_mask==True] = torch.logical_and(inlier_mask[inlier_mask==True], torch.any(reflectance.ge(reflectance_threshold), dim=1))
 
         return px_source, px_target, inlier_mask
 
