@@ -129,7 +129,7 @@ class Analysis:
 
         H, W, _ = self.px_source.shape
         plt.figure()
-        plt.hist(self.error.view(H*W))
+        plt.hist(self.error.view(H*W).numpy().flatten())
         plt.title('Volume {:d}, Scene {:d}, Camera {:d}, Frame {:d}\nMin. {:.1f} px, Max. {:.1f} px, Median {:.1f} px, Mean {:.1f} px, Std. Dev. {:.1f} px'.format(\
                     self.vol, self.scene, self.cam, self.source_frame, \
                     self.min_error, self.max_error, self.median_error, self.mean_error, self.std_error))
