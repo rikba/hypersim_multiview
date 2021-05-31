@@ -48,7 +48,7 @@ class Reprojection:
     #        (optional) map from pixels to reflectance values of source frame to mask reflectant pixel
     #        (optional) reflectance threshold
     # Output: All source pixels, all projected target pixels, list of inliers.
-    def warp(self, px_source, source_position_map, R_CW, C_t_CW, mask_fov=False, mask_occlusion=None, occlusion_threshold=0.03, mask_reflectance=None, reflectance_threshold=30):
+    def warp(self, px_source, source_position_map, R_CW, C_t_CW, mask_fov=False, mask_occlusion=None, occlusion_threshold=0.03, mask_reflectance=None, reflectance_threshold=30, delta_h=0, delta_w=0):
         # Convert input to torch.
         source_position_map = torch.from_numpy(source_position_map).float()
         K = torch.from_numpy(self.K).float()
@@ -77,6 +77,8 @@ class Reprojection:
 
         # Round to integer
         px_target = px_target.round().long()
+        px_target[:,:,0] += delta_h
+        px_target[:,:,1] += delta_w
 
         # Masking
         # WARNING: The order of the checks matters!
