@@ -2,40 +2,12 @@
 
 from vision_3d_utils.data_loader import DataLoader
 from vision_3d_utils.reprojection import Reprojection
+from vision_3d_utils.analysis import Analysis
 
 import numpy as np
-import cv2
 import torch
 import os
 import time
-from matplotlib import pyplot as plt
-
-def maskImage(img, px, inliers, reprojection, slicing):
-    blue = np.array([255, 0, 0], dtype=np.uint8)
-    red = np.array([0, 0, 255], dtype=np.uint8)
-
-    if slicing:
-        H, W = inliers.shape
-        inliers = inliers[torch.arange(0, H, 2),:]
-        inliers = inliers[:,torch.arange(0, W, 2)]
-        px = px[torch.arange(0, H, 2),:,:]
-        px = px[:,torch.arange(0, W, 2),:]
-
-    # Double check if in FOV.
-    outliers = ~inliers
-
-    inliers = reprojection.maskFov(inliers, px)
-    outliers = reprojection.maskFov(outliers, px)
-
-    px_inlier = px[inliers][:,0],px[inliers][:,1]
-    px_outlier = px[outliers][:,0],px[outliers][:,1]
-    # Print all inliers.
-    img[px_inlier]=0
-    img[px_outlier]=0
-    img[px_inlier]+=blue
-    img[px_outlier]+=red
-
-    return img
 
 def indices_array_generic_builtin(m,n):
     return torch.from_numpy(np.indices((m,n)).transpose(1,2,0))
@@ -44,10 +16,12 @@ def indices_array_generic_builtin(m,n):
 verbose = True
 all_pixels = True
 slicing = True
-visualize = True
 overlay = True
 center_crop = False
+save_statistics = True
 plot_statistics = False
+display_images = True
+save_images = True
 result_path = '/tmp'
 # Assume hypersim data sits in $SCRATCH/hypersim
 #hypersim_path = os.environ.get('SCRATCH')
@@ -58,12 +32,12 @@ reprojection = Reprojection(width=1024, height=768, verbose=verbose)
 
 # Load data. This will be cached in data loader.
 vol=1
-scene=1
-cam=0
+scene=2
+cam=1
 source_frame=8
 target_frame=1
-#source_frame=8
-#target_frame=8
+source_frame=8
+target_frame=8
 
 source_position_map = data.loadPositionMap(vol, scene, cam, source_frame)
 target_position_map = data.loadPositionMap(vol, scene, cam, target_frame)
@@ -87,25 +61,6 @@ if all_pixels:
         a = 25
         px_source = px_source[center_H-a:center_H+a,center_W-a:center_W+a,:]
 
-        # center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1 - 70
-        # center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1 - 240
-        # px_source_tmp = torch.cat((px_source_tmp, px_source[center_H-a:center_H+a,center_W-a:center_W+a,:]),0)
-        #
-        # center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1 + 310
-        # center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1 - 420
-        # px_source_tmp = torch.cat((px_source_tmp, px_source[center_H-a:center_H+a,center_W-a:center_W+a,:]),0)
-        #
-        # center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1 - 310
-        # center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1 + 240
-        # px_source_tmp = torch.cat((px_source_tmp, px_source[center_H-a:center_H+a,center_W-a:center_W+a,:]),0)
-        # center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1 + 310
-        # center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1 + 240
-        # px_source_tmp = torch.cat((px_source_tmp, px_source[center_H-a:center_H+a,center_W-a:center_W+a,:]),0)
-        #
-        # center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1 - 310
-        # center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1 + 420
-        # px_source = torch.cat((px_source_tmp, px_source[center_H-a:center_H+a,center_W-a:center_W+a,:]),0)
-
 start_time = time.time()
 px_source, px_target, inliers = reprojection.warp(px_source,
                                                 source_position_map,
@@ -114,45 +69,27 @@ px_source, px_target, inliers = reprojection.warp(px_source,
                                                 mask_occlusion=target_position_map,
                                                 mask_reflectance=source_reflectance_map,
                                                 delta_h=0, delta_w=0)
-print('Warping operation: {:.3f} seconds'.format(time.time() - start_time))
+stop_time = time.time()
+warp_time = stop_time - start_time
+if verbose:
+    print('Warping operation: {:.3f} seconds'.format(warp_time))
 
-# Compute reprojection statistics.
-if source_frame == target_frame:
-    error = px_target - px_source
-    delta_h = -torch.median(error[:,:,0])
-    delta_w = -torch.median(error[:,:,1])
-    px_target[:,:,0] += delta_h
-    px_target[:,:,1] += delta_w
-    print('Delta H: {:d}'.format(delta_h))
-    print('Delta W: {:d}'.format(delta_w))
-    error = px_target - px_source
-    abs_error = torch.abs(error)
-    max_hw_error = torch.max(abs_error, 2)
-    min = torch.min(abs_error)
-    max = torch.max(abs_error)
-    median = torch.median(max_hw_error.values)
-    print('Min pixel error: {:d}'.format(min))
-    print('Max pixel error: {:d}'.format(max))
-    print('Median pixel error: {:d}'.format(median))
-    H, W, _ = px_source.shape
-    if plot_statistics:
-        plt.hist(max_hw_error.values.view(H*W))
-        plt.title('Volume {:d}, Scene {:d}, Camera {:d}, Frame {:d}\nMinimum {:d} px, Maximum {:d} px, Median {:d} px'.format(vol, scene, cam, source_frame, min, max, median))
-        plt.xlabel('Maximum Absolute Reprojection Error [px]')
-        plt.grid()
-        file = os.path.join(result_path, 'max_px_error_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}.pdf'.format(vol, scene, cam, source_frame))
-        plt.savefig(os.path.abspath(file))
+# Analysis and visualization
+img_source = data.loadBgr(vol, scene, cam, source_frame)
+img_target = data.loadBgr(vol, scene, cam, target_frame)
+analysis = Analysis(img_source, img_target, px_source, px_target, inliers, \
+                    reprojection, warp_time, result_path, vol, scene, cam, \
+                    source_frame, target_frame, verbose)
+
+# Statistics
+if save_statistics:
+    analysis.saveStatistics()
+if plot_statistics:
+    analysis.plotErrorHistogram()
 
 # Visualize
-if visualize:
-    img_source = data.loadBgr(vol, scene, cam, source_frame)
-    img_target = data.loadBgr(vol, scene, cam, target_frame)
+if save_images:
+    analysis.saveMaskedFrames()
 
-    if overlay:
-        img_source = maskImage(img_source, px_source, inliers, reprojection, slicing)
-        img_target = maskImage(img_target, px_target, inliers, reprojection, slicing)
-
-    cv2.imshow('Source Image', img_source)
-    cv2.imshow('Target Image', img_target)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+if display_images:
+    analysis.displayMaskedFrames()
