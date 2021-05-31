@@ -14,7 +14,8 @@ class Reprojection:
           dev = "cpu"
         self.device = torch.device(dev)
 
-        print('Device: {:s}'.format(dev))
+        if self.verbose:
+            print('Device: {:s}'.format(dev))
 
     # Given a pixel in source image coordinates, project it into image coordinates of the target frame.
     # Input: Pixel in source coordinates (width, height), pixel position map source frame, camera pose target frame
@@ -71,7 +72,7 @@ class Reprojection:
         # Get homogeneous world position of pixels.
         W_t_WP = source_position_map[px_source[:,:,0], px_source[:,:,1]].to(self.device)
         H, W, C = px_source.shape
-        W_t_WP = torch.cat((W_t_WP, torch.ones(H,W,1)), 2).to(self.device)
+        W_t_WP = torch.cat((W_t_WP, torch.ones(H,W,1).to(self.device)), 2).to(self.device)
 
         # Project pixels into screen coordinates.
         p_screen = torch.matmul(W_t_WP, P.T).to(self.device)
@@ -91,7 +92,7 @@ class Reprojection:
 
         # Masking
         # WARNING: The order of the checks matters!
-        inlier_mask = torch.ones(H,W, dtype=bool)
+        inlier_mask = torch.ones(H,W, dtype=bool).to(self.device)
 
         # Mask pixel that are outside of field of view.
         if mask_fov or mask_occlusion is not None:

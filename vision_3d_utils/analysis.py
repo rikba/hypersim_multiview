@@ -58,8 +58,8 @@ class Analysis:
         inliers = self.reprojection.maskFov(inliers, px)
         outliers = self.reprojection.maskFov(outliers, px)
 
-        px_inlier = px[inliers][:,0],px[inliers][:,1]
-        px_outlier = px[outliers][:,0],px[outliers][:,1]
+        px_inlier = px[inliers][:,0].cpu(),px[inliers][:,1].cpu()
+        px_outlier = px[outliers][:,0].cpu(),px[outliers][:,1].cpu()
         # Print all inliers.
         masked_img = img.copy()
         masked_img[px_inlier]=0
@@ -129,7 +129,7 @@ class Analysis:
 
         H, W, _ = self.px_source.shape
         plt.figure()
-        plt.hist(self.error.view(H*W).numpy().flatten())
+        plt.hist(self.error.view(H*W).cpu().numpy().flatten())
         plt.title('Volume {:d}, Scene {:d}, Camera {:d}, Frame {:d}\nMin. {:.1f} px, Max. {:.1f} px, Median {:.1f} px, Mean {:.1f} px, Std. Dev. {:.1f} px'.format(\
                     self.vol, self.scene, self.cam, self.source_frame, \
                     self.min_error, self.max_error, self.median_error, self.mean_error, self.std_error))
@@ -154,11 +154,11 @@ class Analysis:
         row = {'scene_name': 'ai_{:03d}_{:03d}'.format(self.vol, self.scene), \
                'camera_name': 'cam_{:02d}'.format(self.cam), \
                'frame_id': self.source_frame, \
-               'min_error': self.min_error.numpy(), \
-               'max_error': self.max_error.numpy(), \
-               'median_error': self.median_error.numpy(), \
-               'mean_error': self.mean_error.numpy(), \
-               'std_error': self.std_error.numpy(), \
+               'min_error': self.min_error.cpu().numpy(), \
+               'max_error': self.max_error.cpu().numpy(), \
+               'median_error': self.median_error.cpu().numpy(), \
+               'mean_error': self.mean_error.cpu().numpy(), \
+               'std_error': self.std_error.cpu().numpy(), \
                'warp_time': self.warp_time}
 
         if not os.path.isfile(file):
