@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+from vision_3d_utils.data_loader import DataLoader
+from vision_3d_utils.reprojection import Reprojection
+from vision_3d_utils.analysis import Analysis
+
+import csv
+import re
+import torch
+import numpy as np
+import time
+from distutils.util import strtobool
+
+def indices_array_generic_builtin(m,n):
+    return torch.from_numpy(np.indices((m,n)).transpose(1,2,0))
+
+# Config
+verbose = True
+hypersim_path = '/home/rik/data/hypersim'
+data_index = '/tmp/result/metadata_images.csv'
+result_path= '/tmp/result'
+
+# Initialize helpers once.
+reprojection = Reprojection(width=1024, height=768, verbose=verbose)
+data = DataLoader(hypersim_path, image_type='jpg', verbose=verbose)
+px_source = indices_array_generic_builtin(reprojection.H-1,reprojection.W-1)
+
+# Load dataset list.
+vol=1
+scene=1
+cam=0
+frame_id=0
+with open(data_index, newline='') as csvfile:
+     reader = csv.DictReader(csvfile, delimiter=',')
+     for row in reader:
+         if strtobool(row['included_in_public_release']):
+             # Extract volume and scene number from ai_VVV_SSS string.
+             scene_name = re.findall('\d{3}', row['scene_name'])
+             vol=int(scene_name[0])
+             scene=int(scene_name[1])
+             # Extract cam from cam_CC string
+             camera_name = re.findall('\d{2}', row['camera_name'])
+             cam=int(camera_name[0])
+             # Get frame
+             frame_id = int(row['frame_id'])
+
+             # Load data.
+             source_position_map = data.loadPositionMap(vol, scene, cam, frame_id)
+             R_CW, t_CW = data.loadCamPose(vol, scene, cam, frame_id)
+
+             # Reproject.
+             start_time = time.time()
+             px_source, px_target, inliers = reprojection.warp(px_source,
+                                                             source_position_map,
+                                                             R_CW, t_CW,
+                                                             mask_fov=True)
+             stop_time = time.time()
+             warp_time = stop_time - start_time
+
+             # Analysis and visualization
+             img = data.loadBgr(vol, scene, cam, frame_id)
+             analysis = Analysis(img, img, px_source, px_target, inliers,
+                                 reprojection, warp_time, result_path, vol, scene, cam,
+                                 frame_id, frame_id, verbose)
+             analysis.saveStatistics()
+             analysis.plotErrorHistogram()
+             analysis.saveMaskedFrames()
