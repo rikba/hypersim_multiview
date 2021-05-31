@@ -5,12 +5,10 @@ import os
 import csv
 
 class Analysis:
-    def __init__(self, img_source, img_target, px_source, px_target, inliers, \
-                    reprojection, warp_time, result_path, vol, scene, cam, \
+    def __init__(self, px_source, px_target, inliers, reprojection, \
+                    warp_time, result_path, vol, scene, cam, \
                     source_frame, target_frame, verbose=False):
         self.verbose = verbose
-        self.img_source = img_source
-        self.img_target = img_target
         self.px_source = px_source
         self.px_target = px_target
         self.inliers = inliers
@@ -34,9 +32,9 @@ class Analysis:
         self.mean_error = None
         self.std_error = None
 
-    def displayFrames(self):
-        cv2.imshow('Source Image', self.img_source)
-        cv2.imshow('Target Image', self.img_target)
+    def displayFrames(self, img_source, img_target):
+        cv2.imshow('Source Image', img_source)
+        cv2.imshow('Target Image', img_target)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
@@ -69,18 +67,18 @@ class Analysis:
 
         return masked_img
 
-    def displayMaskedFrames(self):
-        img_source = self.maskImage(self.img_source, self.px_source)
-        img_target = self.maskImage(self.img_target, self.px_target)
+    def displayMaskedFrames(self, img_source, img_target):
+        img_source = self.maskImage(img_source, self.px_source)
+        img_target = self.maskImage(img_target, self.px_target)
 
         cv2.imshow('Source Image', img_source)
         cv2.imshow('Target Image', img_target)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def saveMaskedFrames(self):
-        img_source = self.maskImage(self.img_source, self.px_source)
-        img_target = self.maskImage(self.img_target, self.px_target)
+    def saveMaskedFrames(self, img_source, img_target):
+        img_source = self.maskImage(img_source, self.px_source)
+        img_target = self.maskImage(img_target, self.px_target)
         source_name = 'reprojection_source_from_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}_to_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}.jpg'.format(self.vol, self.scene, self.cam, self.source_frame, self.vol, self.scene, self.cam, self.target_frame)
         target_name = 'reprojection_target_from_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}_to_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}.jpg'.format(self.vol, self.scene, self.cam, self.source_frame, self.vol, self.scene, self.cam, self.target_frame)
         source_file = os.path.join(self.result_path, source_name)

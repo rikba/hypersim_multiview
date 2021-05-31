@@ -58,10 +58,11 @@ with open(data_index, newline='') as csvfile:
              warp_time = stop_time - start_time
 
              # Analysis and visualization
-             img = data.loadBgr(vol, scene, cam, frame_id)
-             analysis = Analysis(img, img, px_source, px_target, inliers,
-                                 reprojection, warp_time, result_path, vol, scene, cam,
+             analysis = Analysis(px_source, px_target, inliers, reprojection,
+                                 warp_time, result_path, vol, scene, cam,
                                  frame_id, frame_id, verbose)
              analysis.saveStatistics()
              analysis.plotErrorHistogram()
-             analysis.saveMaskedFrames()
+
+             img = data.loadBgr(vol, scene, cam, frame_id)
+             analysis.saveMaskedFrames(img, img)
