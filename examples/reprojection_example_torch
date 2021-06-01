@@ -75,10 +75,8 @@ if verbose:
     print('Warping operation: {:.3f} seconds'.format(warp_time))
 
 # Analysis and visualization
-img_source = data.loadBgr(vol, scene, cam, source_frame)
-img_target = data.loadBgr(vol, scene, cam, target_frame)
-analysis = Analysis(img_source, img_target, px_source, px_target, inliers, \
-                    reprojection, warp_time, result_path, vol, scene, cam, \
+analysis = Analysis(px_source, px_target, inliers, reprojection, \
+                    warp_time, result_path, vol, scene, cam, \
                     source_frame, target_frame, verbose)
 
 # Statistics
@@ -88,8 +86,10 @@ if plot_statistics:
     analysis.plotErrorHistogram()
 
 # Visualize
+img_source = data.loadBgr(vol, scene, cam, source_frame)
+img_target = data.loadBgr(vol, scene, cam, target_frame)
 if save_images:
-    analysis.saveMaskedFrames()
+    analysis.saveMaskedFrames(img_source, img_target)
 
 if display_images:
-    analysis.displayMaskedFrames()
+    analysis.displayMaskedFrames(img_source, img_target)
