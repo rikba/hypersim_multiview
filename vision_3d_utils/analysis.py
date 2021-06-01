@@ -148,7 +148,7 @@ class Analysis:
         if self.verbose:
             print('Saving statistcs in {:s}'.format(file))
 
-        fieldnames = ['scene_name', 'camera_name', 'frame_id', 'min_error', 'max_error', 'median_error', 'mean_error', 'std_error', 'warp_time']
+        fieldnames = ['scene_name', 'camera_name', 'frame_id', 'min_error', 'max_error', 'median_error', 'mean_error', 'std_error', 'delta_h', 'delta_w', 'warp_time']
         row = {'scene_name': 'ai_{:03d}_{:03d}'.format(self.vol, self.scene), \
                'camera_name': 'cam_{:02d}'.format(self.cam), \
                'frame_id': self.source_frame, \
@@ -157,6 +157,8 @@ class Analysis:
                'median_error': self.median_error.cpu().numpy(), \
                'mean_error': self.mean_error.cpu().numpy(), \
                'std_error': self.std_error.cpu().numpy(), \
+               'delta_h': self.delta_h.cpu().numpy(), \
+               'delta_w': self.delta_w.cpu().numpy(), \
                'warp_time': self.warp_time}
 
         if not os.path.isfile(file):
