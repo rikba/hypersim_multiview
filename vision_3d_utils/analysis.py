@@ -79,10 +79,13 @@ class Analysis:
     def saveMaskedFrames(self, img_source, img_target):
         img_source = self.maskImage(img_source, self.px_source)
         img_target = self.maskImage(img_target, self.px_target)
-        source_name = 'reprojection_source_from_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}_to_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}.jpg'.format(self.vol, self.scene, self.cam, self.source_frame, self.vol, self.scene, self.cam, self.target_frame)
-        target_name = 'reprojection_target_from_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}_to_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}.jpg'.format(self.vol, self.scene, self.cam, self.source_frame, self.vol, self.scene, self.cam, self.target_frame)
-        source_file = os.path.join(self.result_path, source_name)
-        target_file = os.path.join(self.result_path, target_name)
+        folder = os.path.join(self.result_path, 'ai_{:03d}_{:03d}/images/scene_cam_{:02d}_reprojection_analysis'.format(self.vol, self.scene, self.cam))
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        source_name = 'frame_{:04d}.source.reprojection.from_frame_{:04d}_to_frame_{:04d}.jpg'.format(self.source_frame, self.source_frame, self.target_frame)
+        target_name = 'frame_{:04d}.target.reprojection.from_frame_{:04d}_to_frame_{:04d}.jpg'.format(self.target_frame, self.source_frame, self.target_frame)
+        source_file = os.path.join(folder, source_name)
+        target_file = os.path.join(folder, target_name)
         if self.verbose:
             print('Saving masked source frame image to {:s}'.format(source_file, target_file))
             print('Saving masked target frame image to {:s}'.format(target_file))
@@ -134,7 +137,10 @@ class Analysis:
         plt.xlabel('Reprojection Error [px]')
         plt.ylabel('Number of Pixels')
         plt.grid()
-        file = os.path.join(self.result_path, 'reprojection_error_ai_{:03d}_{:03d}_cam_{:02d}_frame_{:04d}.pdf'.format(self.vol, self.scene, self.cam, self.source_frame))
+        folder = os.path.join(self.result_path, 'ai_{:03d}_{:03d}/images/scene_cam_{:02d}_reprojection_analysis'.format(self.vol, self.scene, self.cam))
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        file = os.path.join(folder, 'frame_{:04d}.reprojection_error.pdf'.format(self.source_frame))
         if self.verbose:
             print('Saving error histogram to {:s}'.format(file))
         plt.savefig(os.path.abspath(file))
