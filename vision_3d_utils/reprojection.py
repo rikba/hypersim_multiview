@@ -57,7 +57,7 @@ class Reprojection:
     #        (optional) map from pixels to reflectance values of source frame to mask reflectant pixel
     #        (optional) reflectance threshold
     # Output: All source pixels, all projected target pixels, list of inliers.
-    def warp(self, px_source, source_position_map, R_CW, C_t_CW, mask_fov=False, mask_occlusion=None, occlusion_threshold=0.03, mask_reflectance=None, reflectance_threshold=30, delta_h=0, delta_w=0):
+    def warp(self, px_source, source_position_map, R_CW, C_t_CW, mask_fov=False, mask_occlusion=None, occlusion_threshold=0.03, mask_reflectance=None, reflectance_threshold=10, delta_h=0, delta_w=0):
         # Convert input to torch.
         px_source = px_source.to(self.device)
         source_position_map = torch.from_numpy(source_position_map).float().to(self.device)
@@ -101,15 +101,15 @@ class Reprojection:
         # Mask pixel that are occluded.
         if mask_occlusion is not None:
             # Get world position of target pixels that are in FOV.
-            target_position_map = torch.from_numpy(mask_occlusion).float()
-            W_t_WP_source = source_position_map[px_source[inlier_mask][:,0],px_source[inlier_mask][:,1]]
-            W_t_WP_target = target_position_map[px_target[inlier_mask][:,0],px_target[inlier_mask][:,1]]
+            target_position_map = torch.from_numpy(mask_occlusion).float().to(self.device)
+            W_t_WP_source = source_position_map[px_source[inlier_mask][:,0],px_source[inlier_mask][:,1]].to(self.device)
+            W_t_WP_target = target_position_map[px_target[inlier_mask][:,0],px_target[inlier_mask][:,1]].to(self.device)
             inlier_mask[inlier_mask==True] = torch.logical_and(inlier_mask[inlier_mask==True], torch.norm(W_t_WP_target - W_t_WP_source, dim=1).lt(occlusion_threshold))
 
         # Mask pixel that are reflectant.
         if mask_reflectance is not None:
-            source_reflectance_map = torch.from_numpy(mask_reflectance).float()
-            reflectance = source_reflectance_map[px_source[inlier_mask][:,0],px_source[inlier_mask][:,1]]
+            source_reflectance_map = torch.from_numpy(mask_reflectance).float().to(self.device)
+            reflectance = source_reflectance_map[px_source[inlier_mask][:,0],px_source[inlier_mask][:,1]].to(self.device)
             inlier_mask[inlier_mask==True] = torch.logical_and(inlier_mask[inlier_mask==True], torch.any(reflectance.ge(reflectance_threshold), dim=1))
 
         return px_source, px_target, inlier_mask
