@@ -15,13 +15,11 @@ def indices_array_generic_builtin(m,n):
 # Initialize utilities once.
 verbose = True
 all_pixels = True
-slicing = True
-overlay = True
 center_crop = False
-save_statistics = True
+save_statistics = False
 plot_statistics = False
 display_images = True
-save_images = True
+save_images = False
 result_path = '/tmp'
 # Assume hypersim data sits in $SCRATCH/hypersim
 #hypersim_path = os.environ.get('SCRATCH')
