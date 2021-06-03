@@ -9,6 +9,7 @@ setup(
    packages=['vision_3d_utils'],  #same as name
    install_requires=['torch', 'opencv-python'], #external packages as dependencies
    scripts=[
+            'examples/reprojection_analysis',
             'examples/reprojection_example_numpy',
             'examples/reprojection_example_torch',
            ]

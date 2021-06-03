@@ -2,40 +2,27 @@
 
 from vision_3d_utils.data_loader import DataLoader
 from vision_3d_utils.reprojection import Reprojection
+from vision_3d_utils.analysis import Analysis
 
 import numpy as np
-import cv2
 import torch
 import os
 import time
-
-def maskImage(img, px, inliers, reprojection):
-    blue = np.array([255, 0, 0], dtype=np.uint8)
-    red = np.array([0, 0, 255], dtype=np.uint8)
-
-    # Double check if in FOV.
-    outliers = ~inliers
-
-    inliers = reprojection.maskFov(inliers, px)
-    outliers = reprojection.maskFov(outliers, px)
-
-    px_inlier = px[inliers][:,0],px[inliers][:,1]
-    px_outlier = px[outliers][:,0],px[outliers][:,1]
-    # Print all inliers.
-    img[px_inlier]=0
-    img[px_outlier]=0
-    img[px_inlier]+=blue
-    img[px_outlier]+=red
-    return img
 
 def indices_array_generic_builtin(m,n):
     return torch.from_numpy(np.indices((m,n)).transpose(1,2,0))
 
 # Initialize utilities once.
-verbose = False
+verbose = True
 all_pixels = True
-slicing = False
-visualize = False
+slicing = True
+overlay = True
+center_crop = False
+save_statistics = True
+plot_statistics = False
+display_images = True
+save_images = True
+result_path = '/tmp'
 # Assume hypersim data sits in $SCRATCH/hypersim
 #hypersim_path = os.environ.get('SCRATCH')
 #hypersim_path = os.path.join(hypersim_path, 'hypersim')
@@ -45,10 +32,12 @@ reprojection = Reprojection(width=1024, height=768, verbose=verbose)
 
 # Load data. This will be cached in data loader.
 vol=1
-scene=1
-cam=0
-source_frame=0
-target_frame=0
+scene=2
+cam=1
+source_frame=8
+target_frame=1
+source_frame=8
+target_frame=8
 
 source_position_map = data.loadPositionMap(vol, scene, cam, source_frame)
 target_position_map = data.loadPositionMap(vol, scene, cam, target_frame)
@@ -64,10 +53,13 @@ px_source = torch.tensor([
                       ])
 
 if all_pixels:
-    px_source = indices_array_generic_builtin(767,1023)
-    if slicing:
-        px_source = np.delete(px_source, slice(None, None, 2), 0)
-        px_source = np.delete(px_source, slice(None, None, 2), 1)
+    px_source = indices_array_generic_builtin(reprojection.H-1,reprojection.W-1)
+    if center_crop:
+        # -15, -70
+        center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1 - 15
+        center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1 - 70
+        a = 25
+        px_source = px_source[center_H-a:center_H+a,center_W-a:center_W+a,:]
 
 start_time = time.time()
 px_source, px_target, inliers = reprojection.warp(px_source,
@@ -75,18 +67,29 @@ px_source, px_target, inliers = reprojection.warp(px_source,
                                                 R_CW, t_CW,
                                                 mask_fov=True,
                                                 mask_occlusion=target_position_map,
-                                                mask_reflectance=source_reflectance_map)
-print('Warping operation: {:.3f} seconds'.format(time.time() - start_time))
+                                                mask_reflectance=source_reflectance_map,
+                                                delta_h=0, delta_w=0)
+stop_time = time.time()
+warp_time = stop_time - start_time
+if verbose:
+    print('Warping operation: {:.3f} seconds'.format(warp_time))
+
+# Analysis and visualization
+analysis = Analysis(px_source, px_target, inliers, reprojection, \
+                    warp_time, result_path, vol, scene, cam, \
+                    source_frame, target_frame, verbose)
+
+# Statistics
+if save_statistics:
+    analysis.saveStatistics()
+if plot_statistics:
+    analysis.plotErrorHistogram()
 
 # Visualize
-if visualize:
-    img_source = data.loadBgr(vol, scene, cam, source_frame)
-    img_target = data.loadBgr(vol, scene, cam, target_frame)
+img_source = data.loadBgr(vol, scene, cam, source_frame)
+img_target = data.loadBgr(vol, scene, cam, target_frame)
+if save_images:
+    analysis.saveMaskedFrames(img_source, img_target)
 
-    img_source = maskImage(img_source, px_source, inliers, reprojection)
-    img_target = maskImage(img_target, px_target, inliers, reprojection)
-
-    cv2.imshow('img_source', img_source)
-    cv2.imshow('image_target', img_target)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+if display_images:
+    analysis.displayMaskedFrames(img_source, img_target)
