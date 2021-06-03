@@ -32,12 +32,10 @@ reprojection = Reprojection(width=1024, height=768, verbose=verbose)
 
 # Load data. This will be cached in data loader.
 vol=1
-scene=2
-cam=1
+scene=1
+cam=0
 source_frame=8
 target_frame=1
-source_frame=8
-target_frame=8
 
 source_position_map = data.loadPositionMap(vol, scene, cam, source_frame)
 target_position_map = data.loadPositionMap(vol, scene, cam, target_frame)
@@ -56,8 +54,8 @@ if all_pixels:
     px_source = indices_array_generic_builtin(reprojection.H-1,reprojection.W-1)
     if center_crop:
         # -15, -70
-        center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1 - 15
-        center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1 - 70
+        center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1
+        center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1
         a = 25
         px_source = px_source[center_H-a:center_H+a,center_W-a:center_W+a,:]
 
