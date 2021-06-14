@@ -3,16 +3,19 @@ This repository implements frame transformation methods to interface and use the
 For example this package can be used to label pixel correspondences for self-supervised key point detection and description as in [KP2D](https://github.com/TRI-ML/KP2D)
 
 ## Frame-to-frame pixel projection
+Pixel correspondences between two frames of the same scene can be found through the pixel world position in the source frame and the target camera pose and camera intrinsic calibration.
 <p float="left">
   <img src="https://user-images.githubusercontent.com/11293852/121869932-d4474000-cd02-11eb-9ec2-d773ee1cbae2.png" alt="Frame-to-frame pixel projection, source" width="200"/>
-  -- warp(pixel world position, target camera pose, intrinsic calibration) -->
+  --warp()-->
   <img src="https://user-images.githubusercontent.com/11293852/121869938-d6110380-cd02-11eb-8644-2ef423608e06.png" alt="Frame-to-frame pixel projection, target" width="200"/>
 </p>
 
 ## Occlusion detection
+Pixel that are visible in the source frame but occluded in the target frame can be detected automatically.
 <img src="https://user-images.githubusercontent.com/11293852/121869958-db6e4e00-cd02-11eb-8ebc-b83d669fc641.png" alt="Occlusion detection" width="200"/>
 
 ## Reflectance detection
+Reflecting and transparent surface can be masked using the diffuse reflectance information of the Hypersim dataset.
 <img src="https://user-images.githubusercontent.com/11293852/121869955-da3d2100-cd02-11eb-9915-7f047708ecb9.png" alt="Reflectance detection" width="200"/>
 
 
