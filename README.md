@@ -5,36 +5,6 @@ Install the 3d_vision toolbox with
 conda develop $HOME/3d_vision/vision_3d_utils
 ```
 
-# projection.py
-This tools implements projection of image pixels from a camera source frame into a camera target frame.
-The user can click points in the source frame and they appear in the target frame.
-![image](https://user-images.githubusercontent.com/11293852/114523636-c0208d00-9c44-11eb-8cb6-13a9bce4aa20.png)
-## How to use
-```
-python3 projection.py --help
-usage: projection.py [-h]
-                     data_folder volume_number scene_number cam_trajectory
-                     source_frame target_frame [occlusion_threshold]
-                     [reflectance_threshold]
-
-Manually verify transformation between two hypersim scenes.
-
-positional arguments:
-  data_folder           The folder containing the hypersim scenes.
-  volume_number         The volume number.
-  scene_number          The scene number.
-  cam_trajectory        The camera trajectory number.
-  source_frame          The source frame.
-  target_frame          The target frame.
-  occlusion_threshold   The distance between source point and target point to
-                        detect occlusions in [m].
-  reflectance_threshold
-                        An adaptive threshold [0..1] to detect reflections.
-```
-Example:
-```
-python3 projection.py /home/rik/data/hypersim 1 1 0 0 3 0.03 0.1
-```
 ## Minimum required dataset
 The following files are required to compute the projection, the occlusion detection, and the reflectance detection:
 ```
