@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from vision_3d_utils.data_loader import DataLoader
-from vision_3d_utils.reprojection import Reprojection
-from vision_3d_utils.analysis import Analysis
+from hypersim_multiview.data_loader import DataLoader
+from hypersim_multiview.reprojection import Reprojection
+from hypersim_multiview.analysis import Analysis
 
 import numpy as np
 import torch
@@ -24,7 +24,7 @@ result_path = '/tmp'
 # Assume hypersim data sits in $SCRATCH/hypersim
 #hypersim_path = os.environ.get('SCRATCH')
 #hypersim_path = os.path.join(hypersim_path, 'hypersim')
-hypersim_path = "/home/rik/data/hypersim"
+hypersim_path = "/tmp/hypersim"
 data = DataLoader(hypersim_path, image_type='jpg', verbose=verbose)
 reprojection = Reprojection(width=1024, height=768, verbose=verbose)
 
@@ -51,7 +51,6 @@ px_source = torch.tensor([
 if all_pixels:
     px_source = indices_array_generic_builtin(reprojection.H-1,reprojection.W-1)
     if center_crop:
-        # -15, -70
         center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1
         center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1
         a = 25

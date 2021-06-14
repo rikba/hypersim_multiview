@@ -1,16 +1,15 @@
 from setuptools import setup
 
 setup(
-   name='vision_3d_utils',
+   name='hypersim_multiview',
    version='1.0',
-   description='Modules to handle hypersim dataset and compute vision metrics.',
+   description='Implements and analyses frame-to-frame pixel reprojection for the Hypersim Evermotion data set.',
    author='Rik Bähnemann',
    author_email='brik@ethz.ch',
-   packages=['vision_3d_utils'],  #same as name
-   install_requires=['torch', 'opencv-python'], #external packages as dependencies
+   packages=['hypersim_multiview'],
+   install_requires=['torch', 'numpy', 'matplotlib', 'opencv-python', 'pandas'],
    scripts=[
             'examples/reprojection_analysis',
-            'examples/reprojection_example_numpy',
-            'examples/reprojection_example_torch',
+            'examples/reprojection_example',
            ]
 )
