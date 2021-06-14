@@ -3,8 +3,11 @@ This repository implements frame transformation methods to interface and use the
 For example this package can be used to label pixel correspondences for self-supervised key point detection and description as in [KP2D](https://github.com/TRI-ML/KP2D)
 
 ## Frame-to-frame pixel projection
-<img src="https://user-images.githubusercontent.com/11293852/121869932-d4474000-cd02-11eb-9ec2-d773ee1cbae2.png" alt="Frame-to-frame pixel projection, source" width="200"/>
-<img src="https://user-images.githubusercontent.com/11293852/121869938-d6110380-cd02-11eb-8644-2ef423608e06.png" alt="Frame-to-frame pixel projection, target" width="200"/>
+<p float="left">
+  <img src="https://user-images.githubusercontent.com/11293852/121869932-d4474000-cd02-11eb-9ec2-d773ee1cbae2.png" alt="Frame-to-frame pixel projection, source" width="200"/>
+  -- warp(pixel world position, target camera pose, intrinsic calibration) -->
+  <img src="https://user-images.githubusercontent.com/11293852/121869938-d6110380-cd02-11eb-8644-2ef423608e06.png" alt="Frame-to-frame pixel projection, target" width="200"/>
+</p>
 
 ## Occlusion detection
 <img src="https://user-images.githubusercontent.com/11293852/121869958-db6e4e00-cd02-11eb-8ebc-b83d669fc641.png" alt="Occlusion detection" width="200"/>
