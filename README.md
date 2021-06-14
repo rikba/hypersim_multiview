@@ -1,4 +1,4 @@
-# Hypersim Multi View
+# Hypersim Multi View Geometry
 This repository implements frame transformation methods to interface and use the [Apple Hypersim Evermotion data set](https://github.com/apple/ml-hypersim) with multi view geometry applications.
 For example this package can be used to label pixel correspondences for self-supervised key point detection and description as in [KP2D](https://github.com/TRI-ML/KP2D)
 
