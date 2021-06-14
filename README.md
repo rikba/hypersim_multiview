@@ -55,3 +55,6 @@ python3 ./download.py -d /diretory/to/download/to --contains .position.hdf5 --si
 The download script will first list all files that it is skipping.
 This may take 15 minutes.
 Then it starts downloading.
+
+# Acknowledgement
+This work was created within the [3D Vision class](https://www.cvg.ethz.ch/teaching/3dvision/) student project <em>Viewpoint Adaptation in a Synthetic Environment</em> with Shengqu Cai (@HexagonPrime), Menelaos Kanakis (@menelaoskanakis) and Mihai Dusmanu (@mihaidusmanu) at ETH Zurich.
