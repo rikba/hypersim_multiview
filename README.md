@@ -45,8 +45,6 @@ The following files are required to compute the projection, the occlusion detect
 
 The minimum dataset is still 500 Gb, thus we have to download it through the official source.
 Use [99991's alternative downloader](https://github.com/apple/ml-hypersim/tree/b125e8fa4f55539cbb2237ddb052504bf7d377bc/contrib/99991) to download the reduced dataset:
-
-JPG
 ```
 python3 ./download.py -d /diretory/to/download/to --contains _detail --silent
 python3 ./download.py -d /diretory/to/download/to --contains .color.jpg --contains final_preview --silent

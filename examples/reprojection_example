@@ -24,7 +24,7 @@ result_path = '/tmp'
 # Assume hypersim data sits in $SCRATCH/hypersim
 #hypersim_path = os.environ.get('SCRATCH')
 #hypersim_path = os.path.join(hypersim_path, 'hypersim')
-hypersim_path = "/home/rik/data/hypersim"
+hypersim_path = "/tmp/hypersim"
 data = DataLoader(hypersim_path, image_type='jpg', verbose=verbose)
 reprojection = Reprojection(width=1024, height=768, verbose=verbose)
 
