@@ -125,11 +125,13 @@ class Analysis:
             print('Mean pixel error: {:.1f}'.format(self.mean_error))
             print('Std pixel error: {:.1f}'.format(self.std_error))
 
-    def plotErrorHistogram(self):
+    def plotErrorHistogram(self, cutoff=100):
         self.computeStatistics()
 
         H, W, _ = self.px_source.shape
         plt.figure()
+        error = self.error.view(H*W)
+        error[error > cutoff] = cutoff
         plt.hist(self.error.view(H*W).cpu().numpy().flatten())
         plt.title('Volume {:d}, Scene {:d}, Camera {:d}, Frame {:d}\nMin. {:.1f} px, Max. {:.1f} px, Median {:.1f} px, Mean {:.1f} px, Std. Dev. {:.1f} px'.format(\
                     self.vol, self.scene, self.cam, self.source_frame, \
