@@ -17,11 +17,11 @@ def indices_array_generic_builtin(m,n):
 
 # Config
 verbose = True
-hypersim_path = '/home/rik/data/hypersim'
+hypersim_path = '/tmp/hypersim'
 data_index = '/tmp/result/metadata_images.csv'
 result_path= '/tmp/result'
 
-correct_offset = True
+correct_offset = False
 correction_file = '/tmp/hypersim_multiview/results/error_statistics.csv'
 if correct_offset:
     df=pd.read_csv(correction_file, sep=',',header=0)
