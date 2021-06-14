@@ -4,9 +4,10 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
 
-result_file = '/tmp/hypersim/error_statistics.csv'
+result_file = '/tmp/hypersim_multiview/results/error_statistics.csv'
 df=pd.read_csv(result_file, sep=',',header=0)
 max_error = df['max_error'].values
+median_error = df['median_error'].values
 
 # Replace out of bound values.
 out_of_bounds = 100
@@ -24,19 +25,24 @@ plt.hist(max_error)
 plt.xlabel('Max. Reprojection Error [px]')
 plt.ylabel('Number of Frames')
 plt.axvline(x=cut_off_threshold, color='k', linestyle='--')
+plt.gca().set_xticks([0, 20, 40, 60, 80, 100])
+plt.gca().set_xticklabels(['0', '20', '40', '60', '80', '>100'])
 plt.grid()
 
 # Compute valid dataset share.
-cut_off_threshold = 1
+cut_off_threshold = 2
+median_error = np.where(median_error < out_of_bounds, median_error, out_of_bounds)
 num_valid = len(median_error[median_error < cut_off_threshold])
 num_total = len(median_error)
 print('{:d} out of {:d} or {:.2f}% of frames have less than {:d} pixel median reprojection error.'.format(num_valid, num_total, num_valid/num_total*100, cut_off_threshold))
 
 
 plt.figure()
-plt.hist(max_error)
+plt.hist(median_error)
 plt.xlabel('Median Reprojection Error [px]')
 plt.ylabel('Number of Frames')
 plt.axvline(x=cut_off_threshold, color='k', linestyle='--')
+plt.gca().set_xticks([0, 20, 40, 60, 80, 100])
+plt.gca().set_xticklabels(['0', '20', '40', '60', '80', '>100'])
 plt.grid()
 plt.show()
