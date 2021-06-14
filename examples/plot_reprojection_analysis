@@ -25,4 +25,18 @@ plt.xlabel('Max. Reprojection Error [px]')
 plt.ylabel('Number of Frames')
 plt.axvline(x=cut_off_threshold, color='k', linestyle='--')
 plt.grid()
+
+# Compute valid dataset share.
+cut_off_threshold = 1
+num_valid = len(median_error[median_error < cut_off_threshold])
+num_total = len(median_error)
+print('{:d} out of {:d} or {:.2f}% of frames have less than {:d} pixel median reprojection error.'.format(num_valid, num_total, num_valid/num_total*100, cut_off_threshold))
+
+
+plt.figure()
+plt.hist(max_error)
+plt.xlabel('Median Reprojection Error [px]')
+plt.ylabel('Number of Frames')
+plt.axvline(x=cut_off_threshold, color='k', linestyle='--')
+plt.grid()
 plt.show()
