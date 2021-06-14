@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from vision_3d_utils.data_loader import DataLoader
-from vision_3d_utils.reprojection import Reprojection
-from vision_3d_utils.analysis import Analysis
+from hypersim_multiview.data_loader import DataLoader
+from hypersim_multiview.reprojection import Reprojection
+from hypersim_multiview.analysis import Analysis
 
 import csv
 import re
@@ -22,7 +22,7 @@ data_index = '/tmp/result/metadata_images.csv'
 result_path= '/tmp/result'
 
 correct_offset = True
-correction_file = '/home/rik/workspace/3d_vision/vision_3d_utils/results/error_statistics.csv'
+correction_file = '/tmp/hypersim_multiview/results/error_statistics.csv'
 if correct_offset:
     df=pd.read_csv(correction_file, sep=',',header=0)
     delta_h = df['delta_h'].values

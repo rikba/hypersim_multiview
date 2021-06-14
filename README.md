@@ -1,8 +1,8 @@
 # Installation
 ## Conda
-Install the 3d_vision toolbox with
+Install the hypersim_multiview toolbox with
 ```
-conda develop $HOME/3d_vision/vision_3d_utils
+conda develop $HOME/hypersim_multiview
 ```
 
 ## Minimum required dataset
@@ -40,8 +40,3 @@ python3 ./download.py -d /diretory/to/download/to --contains .position.hdf5 --si
 The download script will first list all files that it is skipping.
 This may take 15 minutes.
 Then it starts downloading.
-
-## Dependencies
-```
-pip3 install opencv-python h5py pandas numpy
-```

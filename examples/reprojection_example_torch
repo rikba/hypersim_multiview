@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from vision_3d_utils.data_loader import DataLoader
-from vision_3d_utils.reprojection import Reprojection
-from vision_3d_utils.analysis import Analysis
+from hypersim_multiview.data_loader import DataLoader
+from hypersim_multiview.reprojection import Reprojection
+from hypersim_multiview.analysis import Analysis
 
 import numpy as np
 import torch

@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
 
-result_file = '/home/rik/data/hypersim/error_statistics.csv'
+result_file = '/tmp/hypersim/error_statistics.csv'
 df=pd.read_csv(result_file, sep=',',header=0)
 max_error = df['max_error'].values
 
