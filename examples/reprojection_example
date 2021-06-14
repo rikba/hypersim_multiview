@@ -51,7 +51,6 @@ px_source = torch.tensor([
 if all_pixels:
     px_source = indices_array_generic_builtin(reprojection.H-1,reprojection.W-1)
     if center_crop:
-        # -15, -70
         center_H = torch.div(reprojection.H, 2, rounding_mode='trunc') - 1
         center_W = torch.div(reprojection.W, 2, rounding_mode='trunc') - 1
         a = 25
