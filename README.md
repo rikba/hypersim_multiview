@@ -7,17 +7,17 @@ Pixel correspondences between two frames of the same scene can be found through 
 
 `warp()`:
 <p float="left">
-  <img src="https://user-images.githubusercontent.com/11293852/121869932-d4474000-cd02-11eb-9ec2-d773ee1cbae2.png" alt="Frame-to-frame pixel projection, source" height="360"/>
-  <img src="https://user-images.githubusercontent.com/11293852/121869938-d6110380-cd02-11eb-8644-2ef423608e06.png" alt="Frame-to-frame pixel projection, target" height="360"/>
+  <img src="https://user-images.githubusercontent.com/11293852/121869932-d4474000-cd02-11eb-9ec2-d773ee1cbae2.png" alt="Frame-to-frame pixel projection, source" height="240"/>
+  <img src="https://user-images.githubusercontent.com/11293852/121869938-d6110380-cd02-11eb-8644-2ef423608e06.png" alt="Frame-to-frame pixel projection, target" height="240"/>
 </p>
 
 ## Occlusion detection
 Pixel that are visible in the source frame but occluded in the target frame can be detected automatically.
-<img src="https://user-images.githubusercontent.com/11293852/121869958-db6e4e00-cd02-11eb-8ebc-b83d669fc641.png" alt="Occlusion detection" height="360"/>
+<img src="https://user-images.githubusercontent.com/11293852/121869958-db6e4e00-cd02-11eb-8ebc-b83d669fc641.png" alt="Occlusion detection" height="240"/>
 
 ## Reflectance detection
 Reflecting and transparent surface can be masked using the diffuse reflectance information of the Hypersim dataset.
-<img src="https://user-images.githubusercontent.com/11293852/121869955-da3d2100-cd02-11eb-9915-7f047708ecb9.png" alt="Reflectance detection" height="360"/>
+<img src="https://user-images.githubusercontent.com/11293852/121869955-da3d2100-cd02-11eb-9915-7f047708ecb9.png" alt="Reflectance detection" height="240"/>
 
 
 # Installation
